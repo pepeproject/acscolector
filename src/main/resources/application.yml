@@ -1,0 +1,11 @@
+url_sofia: 
+url_acs:
+acs_api_key:
+acs_secret_key:
+acs_project_id:
+server.port: ${PEPE_SERVER_PORT:8000}
+build:
+  project: 1
+  timestamp: 1
+  version: 1
+fixedDelay:  ${SCHEDULER_TIME:10000}
