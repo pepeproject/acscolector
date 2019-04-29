@@ -13,20 +13,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class SofiaService {
+public class TelegrafService {
 
     @Autowired
     private ACSCollectorConfiguration configuration;
 
     RestTemplate restTemplate;
 
-    public SofiaService(){
+    public TelegrafService(){
         this.restTemplate  = getRestTemplate();
     }
 
-    public void post(JsonNode metrics){
+    public void post(JsonNode metric){
         HttpEntity<JsonNode> entity = getJsonNodeHttpEntity();
-        restTemplate.exchange(configuration.getUrlSofia(), HttpMethod.POST, entity, JsonNode.class).getBody();
+        restTemplate.exchange(configuration.getUrlTelegraf(), HttpMethod.POST, entity, JsonNode.class).getBody();
     }
 
     private HttpEntity<JsonNode> getJsonNodeHttpEntity() {

@@ -34,10 +34,10 @@ public class ACSCollectorConfigurationTest extends ApplicationTests {
     }
 
     @Test
-    public void getUrlSofia(){
-        String urlSofia = acsCollectorConfiguration.getUrlSofia();
-        assertThat(urlSofia, Matchers.instanceOf(String.class));
-        assertThat(urlSofia, Matchers.notNullValue());
+    public void getUrlTelegraf(){
+        String urlTelegraf = acsCollectorConfiguration.getUrlTelegraf();
+        assertThat(urlTelegraf, Matchers.instanceOf(String.class));
+        assertThat(urlTelegraf, Matchers.notNullValue());
     }
 
     @Test

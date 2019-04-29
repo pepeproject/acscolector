@@ -18,14 +18,14 @@ public class ACSCollectorService extends TimerTask {
     private ACSCollectorConfiguration configuration;
 
     @Autowired
-    private SofiaService sofiaService;
+    private TelegrafService telegrafService;
 
     @Override
     public void run() {
             try {
                 logger.info("comecou a enviar");
                 JsonNode loadBalances = getLoadBalances();
-                sofiaService.post(loadBalances);
+                telegrafService.post(loadBalances);
                 logger.info("terminou de enviar");
             }catch (Exception e){
                 logger.error(e.getMessage(),e);

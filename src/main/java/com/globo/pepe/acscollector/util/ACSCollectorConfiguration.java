@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ACSCollectorConfiguration {
 
-    private @Value("${url_sofia}")
-    String urlSofia;
+    private @Value("${url_telegraf}")
+    String urlTelegraf;
     private @Value("${url_acs}")
     String urlACS;
     private @Value("${acs_api_key}")
@@ -16,10 +16,9 @@ public class ACSCollectorConfiguration {
     String secretKey;
     private @Value("${acs_project_id}") String projectId;
 
-    public String getUrlSofia() {
-        return urlSofia;
+    public String getUrlTelegraf() {
+        return urlTelegraf;
     }
-
 
     public String getApiKey() {
         return apiKey;

@@ -6,10 +6,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
-public class SofiaServiceTest extends ApplicationTests {
+public class TelegrafServiceTest extends ApplicationTests {
 
     @Autowired
-    private SofiaService sofiaService;
+    private TelegrafService telegrafService;
 
     @Test
     public void post(){
@@ -18,9 +18,8 @@ public class SofiaServiceTest extends ApplicationTests {
 
     @Test
     public void getRestTemplate(){
-      RestTemplate restTemplate =  sofiaService.getRestTemplate();
-        assertThat(restTemplate, Matchers.notNullValue());
-
+      RestTemplate restTemplate =  telegrafService.getRestTemplate();
+      assertThat(restTemplate, Matchers.notNullValue());
     }
 
 }
