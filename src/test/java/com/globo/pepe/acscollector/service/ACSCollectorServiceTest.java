@@ -2,15 +2,15 @@ package com.globo.pepe.acscollector.service;
 
 import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Matchers;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.globo.pepe.acscollector.ApplicationTests;
 import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
 import com.globo.pepe.acscollector.util.JsonNodeUtil;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ACSCollectorServiceTest extends ApplicationTests {
 

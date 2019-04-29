@@ -1,6 +1,5 @@
 package com.globo.pepe.acscollector.mock;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Repository;
 
 @Repository
