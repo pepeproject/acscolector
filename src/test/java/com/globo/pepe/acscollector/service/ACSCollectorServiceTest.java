@@ -99,5 +99,27 @@ public class ACSCollectorServiceTest extends ApplicationTests {
         assertThat(loadBalancer.get("autoScaleGroup"), Matchers.notNullValue());
     }
 
+    @Test
+    public void formmaterPostTelegraf()throws Exception{
+        String loadBalanceString = getDataServiceMock().getResult("listLoadBalancerRules");
+        JsonNode loadBalancer = JsonNodeUtil.desirializerJsonNode(loadBalanceString);
+
+        String virtualMachinesString =  getDataServiceMock().getResult("listLoadBalancerRuleInstances");
+        JsonNode virtualMachines = JsonNodeUtil.desirializerJsonNode(virtualMachinesString);
+        acsCollectorService.setInstancesLoadBalance(loadBalancer,virtualMachines);
+
+        String autoScaleString = getDataServiceMock().getResult("listAutoScaleVmGroups");
+        JsonNode autoScale = JsonNodeUtil.desirializerJsonNode(autoScaleString);
+        acsCollectorService.setAutoScaleGroupLoadBalance(loadBalancer,autoScale);
+
+        ACSClient acsClient = Mockito.mock(ACSClient.class);
+        Mockito.when(acsClient.getLoadBalanceInstances(Mockito.anyString())).thenReturn(virtualMachines);
+        Mockito.when(acsClient.getAutoScaleByLB(Mockito.anyString())).thenReturn(autoScale);
+
+        acsCollectorService.getDetailsLoadBalance(acsClient,loadBalancer);
+
+        JsonNodeUtil.formmaterPostTelegraf(loadBalancer);
+
+    }
 
 }
