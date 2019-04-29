@@ -1,13 +1,19 @@
 package com.globo.pepe.acscollector.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
+import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimerTask;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
+import com.globo.pepe.acscollector.util.JsonNodeUtil;
 
 @Service
 public class ACSCollectorService extends TimerTask {
@@ -24,8 +30,17 @@ public class ACSCollectorService extends TimerTask {
     public void run() {
             try {
                 logger.info("comecou a enviar");
+                Long timestamp = new Date().getTime();
                 JsonNode loadBalances = getLoadBalances();
-                telegrafService.post(loadBalances);
+                
+                Map<String, Map<String,String>> loadBalancerFormated = JsonNodeUtil.formmaterPostTelegraf(loadBalances);
+                
+                for (Entry<String, Map<String,String>> vip : loadBalancerFormated.entrySet()) {
+                    for (Entry<String, String> vm: vip.getValue().entrySet()) {
+                        telegrafService.post(vm.getValue(), timestamp);
+                    }
+                }
+                
                 logger.info("terminou de enviar");
             }catch (Exception e){
                 logger.error(e.getMessage(),e);
