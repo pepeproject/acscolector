@@ -10,10 +10,10 @@ telegraf:
   url: ${URL_TELEGRAF:http://127.0.0.1:5000/write}
 
 acs:
-  url: ${URL_ACS}
-  api_key: ${ACS_API_KEY}
-  secret_key: ${ACS_SECRET_KEY}
-  project_id: ${ACS_PROJECT_ID}
+  url: ${URL_ACS:http://127.0.0.1}
+  api_key: ${ACS_API_KEY:xxx}
+  secret_key: ${ACS_SECRET_KEY:xxx}
+  project_id: ${ACS_PROJECT_ID:xxx}
 
 server:
   port: ${SERVER_PORT:8000}
