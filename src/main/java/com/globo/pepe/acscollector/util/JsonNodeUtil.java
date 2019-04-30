@@ -32,7 +32,7 @@ public class JsonNodeUtil {
                         concat(",vip_name=").concat(loadBalance.get("name").asText()).concat(",vm_name=").
                         concat(virtualMachine.get("name").asText()).concat(",vm_id=").
                         concat(virtualMachine.get("id").asText()).concat(",vm_project=").
-                        concat(virtualMachine.get("project").asText()).concat(",project_id=").
+                        concat(virtualMachine.get("project").asText().replaceAll(" ","\\\\ ")).concat(",project_id=").
                         concat(virtualMachine.get("projectid").asText()).concat(",vm_state=").
                         concat(virtualMachine.get("state").asText()).concat(",vm_created=").
                         concat(virtualMachine.get("created").asText()).concat(",vm_ip_address=").
