@@ -6,15 +6,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ACSCollectorConfiguration {
 
-    private @Value("${url_telegraf}")
+    private @Value("${telegraf.url}")
     String urlTelegraf;
-    private @Value("${url_acs}")
+    private @Value("${acs.url}")
     String urlACS;
-    private @Value("${acs_api_key}")
+    private @Value("${acs.api_key}")
     String apiKey;
-    private @Value("${acs_secret_key}")
+    private @Value("${acs.secret_key}")
     String secretKey;
-    private @Value("${acs_project_id}") String projectId;
+    private @Value("${acs.project_id}") String projectId;
 
     public String getUrlTelegraf() {
         return urlTelegraf;
