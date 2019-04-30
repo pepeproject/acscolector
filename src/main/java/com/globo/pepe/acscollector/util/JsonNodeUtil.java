@@ -28,6 +28,7 @@ public class JsonNodeUtil {
 
                 for(JsonNode virtualMachine : loadBalance.get("virtualMachines")){
                     String metric = "";
+                    virtualMachines = new LinkedHashMap<String,String>();
                     metric = metric.concat("pepe_acs_metrics,vip_id=").concat(loadBalance.get("id").asText()).
                         concat(",vip_name=").concat(loadBalance.get("name").asText()).concat(",vm_name=").
                         concat(virtualMachine.get("name").asText()).concat(",vm_id=").
