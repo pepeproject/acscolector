@@ -1,5 +1,6 @@
 package com.globo.pepe.acscollector.service;
 
+import com.globo.pepe.common.services.JsonLoggerService;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,12 +27,20 @@ public class ACSCollectorService extends TimerTask {
     @Autowired
     private TelegrafService telegrafService;
 
+    private final JsonLoggerService jsonLoggerService;
+
+    public ACSCollectorService(JsonLoggerService jsonLoggerService) {
+        this.jsonLoggerService = jsonLoggerService;
+    }
+
+
     @Override
     public void run() {
+        JsonNode loadBalances = null;
             try {
                 logger.info("comecou a enviar");
                 Long timestamp = new Date().getTime();
-                JsonNode loadBalances = getLoadBalances();
+                loadBalances = getLoadBalances();
                 
                 Map<String, Map<String,String>> loadBalancerFormated = JsonNodeUtil.formmaterPostTelegraf(loadBalances);
                 
@@ -43,7 +52,7 @@ public class ACSCollectorService extends TimerTask {
                 
                 logger.info("terminou de enviar");
             }catch (Exception e){
-                logger.error(e.getMessage(),e);
+                jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + loadBalances).sendError();
             }
 
     }

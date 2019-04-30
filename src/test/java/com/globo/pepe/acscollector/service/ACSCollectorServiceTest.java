@@ -2,6 +2,7 @@ package com.globo.pepe.acscollector.service;
 
 import static org.junit.Assert.assertThat;
 
+import com.globo.pepe.common.services.JsonLoggerService;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -17,7 +18,15 @@ public class ACSCollectorServiceTest extends ApplicationTests {
     @Autowired
     private ACSCollectorConfiguration configuration;
 
-    private ACSCollectorService acsCollectorService = new ACSCollectorService();
+    private final JsonLoggerService jsonLoggerService;
+    private ACSCollectorService acsCollectorService;
+
+
+    public ACSCollectorServiceTest(JsonLoggerService jsonLoggerService) {
+        this.jsonLoggerService = jsonLoggerService;
+        this.acsCollectorService = new ACSCollectorService(jsonLoggerService);
+    }
+
 
     @Test
     public void setInstancesLoadBalance() throws Exception{

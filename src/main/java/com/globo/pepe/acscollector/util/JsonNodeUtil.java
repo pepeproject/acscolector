@@ -21,36 +21,72 @@ public class JsonNodeUtil {
     }
 
     public static  Map<String, Map<String,String>> formmaterPostTelegraf(JsonNode loadbalance){
-        Map<String, Map<String,String>> loadbalances = new LinkedHashMap<String, Map<String,String>>();
-        Map<String,String> virtualMachines = new LinkedHashMap<String,String>();
-        if(loadbalance != null && loadbalance.get("listloadbalancerrulesresponse") != null){
-            for (JsonNode loadBalance : loadbalance.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+            Map<String, Map<String, String>> loadbalances = new LinkedHashMap<String, Map<String, String>>();
+            Map<String, String> virtualMachines = new LinkedHashMap<String, String>();
+            if (loadbalance != null && loadbalance.get("listloadbalancerrulesresponse") != null) {
+                for (JsonNode loadBalance : loadbalance.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+                    if(loadBalance.get("virtualMachines") != null){
+                        for (JsonNode virtualMachine : loadBalance.get("virtualMachines")) {
+                            String metric = "pepe_acs_metrics";
+                            virtualMachines = new LinkedHashMap<String, String>();
 
-                for(JsonNode virtualMachine : loadBalance.get("virtualMachines")){
-                    String metric = "";
-                    virtualMachines = new LinkedHashMap<String,String>();
-                    metric = metric.concat("pepe_acs_metrics,vip_id=").concat(loadBalance.get("id").asText()).
-                        concat(",vip_name=").concat(loadBalance.get("name").asText()).concat(",vm_name=").
-                        concat(virtualMachine.get("name").asText()).concat(",vm_id=").
-                        concat(virtualMachine.get("id").asText()).concat(",vm_project=").
-                        concat(virtualMachine.get("project").asText().replaceAll(" ","\\\\ ")).concat(",project_id=").
-                        concat(virtualMachine.get("projectid").asText()).concat(",vm_state=").
-                        concat(virtualMachine.get("state").asText()).concat(",vm_created=").
-                        concat(virtualMachine.get("created").asText()).concat(",vm_ip_address=").
-                        concat(virtualMachine.get("nic").get(0).get("ipaddress").asText()).
-                        concat(" autoscale_minmembers=").
-                        concat(loadBalance.get("autoScaleGroup").get(0).get("minmembers").asText()).
-                        concat(",autoscale_maxmembers=").
-                        concat(loadBalance.get("autoScaleGroup").get(0).get("maxmembers").asText()).
-                        concat(",autoscale_count=").concat(loadBalance.get("autoScaleGroup").get(0).get("autoscalegroupcountmembers").asText());
-                    virtualMachines.put(virtualMachine.get("id").asText(),metric);
+                            if(loadBalance.get("id") != null){
+                                metric = metric.concat(",vip_id=").concat(loadBalance.get("id").asText());
+                            }
+
+                            if(loadBalance.get("name") != null){
+                                metric = metric.concat(",vip_name=").concat(loadBalance.get("name").asText());
+                            }
+
+                            if(virtualMachine.get("name") != null){
+                                metric = metric.concat(",vm_name=").concat(virtualMachine.get("name").asText());
+                            }
+
+                            if(virtualMachine.get("id") != null){
+                                metric = metric.concat(",vm_id=").concat(virtualMachine.get("id").asText());
+                            }
+
+                            if(virtualMachine.get("project") != null){
+                                metric = metric.concat(",vm_project=").concat(virtualMachine.get("project").asText().replaceAll(" ", "\\\\ "));
+                            }
+
+                            if(virtualMachine.get("projectid") != null){
+                                metric = metric.concat(",project_id=").concat(virtualMachine.get("projectid").asText());
+                            }
+
+                            if(virtualMachine.get("state") != null){
+                                metric = metric.concat(",vm_state=").concat(virtualMachine.get("state").asText());
+                            }
+
+                            if(virtualMachine.get("created") != null){
+                                metric = metric.concat(",vm_created=").concat(virtualMachine.get("created").asText());
+                            }
+
+                            if(virtualMachine.get("nic") != null && virtualMachine.get("nic").isArray() && virtualMachine.get("nic").get(0).get("ipaddress") != null){
+                                metric = metric.concat(",vm_ip_address=").concat(virtualMachine.get("nic").get(0).get("ipaddress").asText());
+                            }
+                            metric = metric.concat(" ");
+                            if(loadBalance.get("autoScaleGroup") != null && loadBalance.get("autoScaleGroup").isArray() && loadBalance.get("autoScaleGroup").get(0).get("minmembers") != null){
+                                metric = metric.concat("autoscale_minmembers=").concat(loadBalance.get("autoScaleGroup").get(0).get("minmembers").asText());
+
+                            }
+
+                            if(loadBalance.get("autoScaleGroup") != null && loadBalance.get("autoScaleGroup").isArray() && loadBalance.get("autoScaleGroup").get(0).get("maxmembers") != null){
+                                metric = metric.concat(",autoscale_maxmembers=").concat(loadBalance.get("autoScaleGroup").get(0).get("maxmembers").asText());
+
+                            }
+
+                            if(loadBalance.get("autoScaleGroup") != null && loadBalance.get("autoScaleGroup").isArray() && loadBalance.get("autoScaleGroup").get(0).get("autoscalegroupcountmembers") != null){
+                                metric = metric.concat(",autoscale_count=").concat(loadBalance.get("autoScaleGroup").get(0).get("autoscalegroupcountmembers").asText());
+                            }
+
+                            virtualMachines.put(virtualMachine.get("id").asText(), metric);
+                        }
+                    }
+                    loadbalances.put(loadBalance.get("name").asText(), virtualMachines);
                 }
-                loadbalances.put(loadBalance.get("name").asText(),virtualMachines);
-
-
             }
-        }
-        return loadbalances;
+            return loadbalances;
     }
 
 

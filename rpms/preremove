@@ -1,6 +1,6 @@
 $!/bin/bash
 
-SERVICE=api
+SERVICE=acscollector
 /usr/bin/systemctl stop pepe@${SERVICE}
 /usr/bin/systemctl disable pepe@${SERVICE}
 

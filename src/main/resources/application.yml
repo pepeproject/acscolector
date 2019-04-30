@@ -17,3 +17,7 @@ acs:
 
 server:
   port: ${SERVER_PORT:8000}
+
+pepe:
+  logging:
+    tags: ${LOGGING_TAGS:default}
