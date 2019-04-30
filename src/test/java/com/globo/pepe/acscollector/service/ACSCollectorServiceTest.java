@@ -3,6 +3,8 @@ package com.globo.pepe.acscollector.service;
 import static org.junit.Assert.assertThat;
 
 import com.globo.pepe.common.services.JsonLoggerService;
+import com.globo.pepe.common.services.JsonLoggerService.JsonLogger;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -18,15 +20,19 @@ public class ACSCollectorServiceTest extends ApplicationTests {
     @Autowired
     private ACSCollectorConfiguration configuration;
 
-    private final JsonLoggerService jsonLoggerService;
     private ACSCollectorService acsCollectorService;
-
-
-    public ACSCollectorServiceTest(JsonLoggerService jsonLoggerService) {
-        this.jsonLoggerService = jsonLoggerService;
+    
+    public ACSCollectorServiceTest() {
+        JsonLoggerService jsonLoggerService = Mockito.mock(JsonLoggerService.class);
+        JsonLogger jsonLogger = Mockito.mock(JsonLogger.class);
+        
+        Mockito.when(jsonLogger.put(Mockito.anyString(), Mockito.anyString())).thenReturn(jsonLogger);
+        Mockito.when(jsonLogger.sendError()).thenReturn("");
+        
+        Mockito.when(jsonLoggerService.newLogger(Mockito.any())).thenReturn(jsonLogger);
+        
         this.acsCollectorService = new ACSCollectorService(jsonLoggerService);
     }
-
 
     @Test
     public void setInstancesLoadBalance() throws Exception{
@@ -41,7 +47,6 @@ public class ACSCollectorServiceTest extends ApplicationTests {
         assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse"), Matchers.notNullValue());
         assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"), Matchers.notNullValue());
     }
-
 
     @Test
     public void setInstancesLoadBalanceMachineNull() throws Exception{
