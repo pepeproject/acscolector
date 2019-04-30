@@ -1,13 +1,10 @@
 package com.globo.pepe.acscollector.service;
 
-import com.globo.pepe.common.services.JsonLoggerService;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimerTask;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +12,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
 import com.globo.pepe.acscollector.util.JsonNodeUtil;
+import com.globo.pepe.common.services.JsonLoggerService;
 
 @Service
 public class ACSCollectorService extends TimerTask {
-
-    private static final Logger logger = LogManager.getLogger(ACSCollectorService.class);
 
     @Autowired
     private ACSCollectorConfiguration configuration;
@@ -33,12 +29,10 @@ public class ACSCollectorService extends TimerTask {
         this.jsonLoggerService = jsonLoggerService;
     }
 
-
     @Override
     public void run() {
         JsonNode loadBalances = null;
             try {
-                logger.info("comecou a enviar");
                 Long timestamp = new Date().getTime();
                 loadBalances = getLoadBalances();
                 
@@ -50,7 +44,6 @@ public class ACSCollectorService extends TimerTask {
                     }
                 }
                 
-                logger.info("terminou de enviar");
             }catch (Exception e){
                 jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + loadBalances).sendError();
             }
