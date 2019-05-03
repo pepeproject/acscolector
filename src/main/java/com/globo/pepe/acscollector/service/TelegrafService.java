@@ -1,7 +1,5 @@
 package com.globo.pepe.acscollector.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
@@ -16,8 +14,6 @@ import com.globo.pepe.common.services.JsonLoggerService;
 
 @Service
 public class TelegrafService {
-
-    private static final Logger logger = LogManager.getLogger(ACSCollectorService.class);
 
     @Autowired
     private ACSCollectorConfiguration configuration;
@@ -40,8 +36,6 @@ public class TelegrafService {
         ResponseEntity<String> response = restTemplate.exchange(configuration.getUrlTelegraf(), HttpMethod.POST, entity, String.class);
 
         if (!HttpStatus.NO_CONTENT.equals(response.getStatusCode())) {
-            logger.error("Response status code: " + response.getStatusCodeValue() + " ao enviar métricas: (" + metricWithTimestamp+ ")");
-            
             jsonLoggerService.newLogger(getClass()).put("short_message", "Response status code: " + response.getStatusCodeValue() + " ao enviar métricas: (" + metricWithTimestamp+ ")").sendError();
         }
     }
