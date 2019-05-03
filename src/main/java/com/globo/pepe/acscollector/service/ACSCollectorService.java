@@ -1,10 +1,13 @@
 package com.globo.pepe.acscollector.service;
 
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimerTask;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,8 @@ import com.globo.pepe.common.services.JsonLoggerService;
 @Service
 public class ACSCollectorService extends TimerTask {
 
+    private static final Logger logger = LogManager.getLogger(ACSCollectorService.class);
+    
     @Autowired
     private ACSCollectorConfiguration configuration;
 
@@ -32,22 +37,28 @@ public class ACSCollectorService extends TimerTask {
     @Override
     public void run() {
         JsonNode loadBalances = null;
-            try {
-                Long timestamp = getTimestampToTelegraf();
-                loadBalances = getLoadBalances();
-                
-                Map<String, Map<String,String>> loadBalancerFormated = JsonNodeUtil.formmaterPostTelegraf(loadBalances);
-                
-                for (Entry<String, Map<String,String>> vip : loadBalancerFormated.entrySet()) {
-                    for (Entry<String, String> vm: vip.getValue().entrySet()) {
-                        telegrafService.post(vm.getValue(), timestamp);
-                    }
+        try {
+            Instant start = Instant.now();
+            
+            Long timestamp = getTimestampToTelegraf();
+            loadBalances = getLoadBalances();
+
+            Map<String, Map<String, String>> loadBalancerFormated = JsonNodeUtil.formmaterPostTelegraf(loadBalances);
+
+            for (Entry<String, Map<String, String>> vip : loadBalancerFormated.entrySet()) {
+                for (Entry<String, String> vm : vip.getValue().entrySet()) {
+                    telegrafService.post(vm.getValue(), timestamp);
                 }
-                
-            }catch (Exception e){
-                jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + loadBalances).sendError();
             }
 
+            Instant end = Instant.now();
+            
+            logger.info("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
+
+        } catch (Exception e) {
+            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + loadBalances)
+                    .sendError();
+        }
     }
 
     private long getTimestampToTelegraf() {
