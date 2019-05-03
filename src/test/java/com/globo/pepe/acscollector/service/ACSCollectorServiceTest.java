@@ -31,13 +31,13 @@ public class ACSCollectorServiceTest extends ApplicationTests {
     @Test
     public void getDetailsLoadBalance()throws Exception{
         String loadBalanceString = getDataServiceMock().getResult("listLoadBalancerRules");
-        JsonNode loadBalancer = JsonNodeUtil.desirializerJsonNode(loadBalanceString);
+        JsonNode loadBalancer = JsonNodeUtil.deserializerJsonNode(loadBalanceString);
 
         String virtualMachinesString =  getDataServiceMock().getResult("listLoadBalancerRuleInstances");
-        JsonNode virtualMachines = JsonNodeUtil.desirializerJsonNode(virtualMachinesString);
+        JsonNode virtualMachines = JsonNodeUtil.deserializerJsonNode(virtualMachinesString);
 
         String autoScaleString = getDataServiceMock().getResult("listAutoScaleVmGroups");
-        JsonNode autoScale = JsonNodeUtil.desirializerJsonNode(autoScaleString);
+        JsonNode autoScale = JsonNodeUtil.deserializerJsonNode(autoScaleString);
 
         ACSClient acsClient = Mockito.mock(ACSClient.class);
         Mockito.when(acsClient.getLoadBalanceInstances(Mockito.anyString())).thenReturn(virtualMachines);
