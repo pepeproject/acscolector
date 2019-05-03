@@ -1,30 +1,25 @@
 package com.globo.pepe.acscollector.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
+import com.globo.pepe.acscollector.util.JsonNodeUtil;
+import com.globo.pepe.common.services.JsonLoggerService;
 
 import br.com.autonomiccs.apacheCloudStack.client.ApacheCloudStackClient;
 import br.com.autonomiccs.apacheCloudStack.client.ApacheCloudStackRequest;
 import br.com.autonomiccs.apacheCloudStack.client.beans.ApacheCloudStackUser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
-import com.globo.pepe.acscollector.util.JsonNodeUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-
 
 public class ACSClient {
 
-    private static final Logger logger = LogManager.getLogger(ACSClient.class);
+    private JsonLoggerService jsonLoggerService;
 
     private ApacheCloudStackUser apacheCloudStackUser;
     private ApacheCloudStackClient apacheCloudStackClient;
 
-    @Autowired
-    private ACSCollectorConfiguration configuration;
-
-    public ACSClient(ACSCollectorConfiguration configuration) {
-        apacheCloudStackUser = new ApacheCloudStackUser(configuration.getSecretKey(), configuration.getApiKey());
-        apacheCloudStackClient = new ApacheCloudStackClient(configuration.getUrlACS(), apacheCloudStackUser);
+    public ACSClient(ACSCollectorConfiguration configuration, JsonLoggerService jsonLoggerService) {
+        this.jsonLoggerService = jsonLoggerService;
+        this.apacheCloudStackUser = new ApacheCloudStackUser(configuration.getSecretKey(), configuration.getApiKey());
+        this.apacheCloudStackClient = new ApacheCloudStackClient(configuration.getUrlACS(), apacheCloudStackUser);
     }
 
     public ApacheCloudStackRequest getACSRequestFactory(String command) {
@@ -41,7 +36,7 @@ public class ACSClient {
             apacheCloudStackRequest.addParameter("id", loadBalancerId);
             result = executeACScommand(apacheCloudStackRequest);
         }catch (Exception e){
-            logger.error(e.getMessage(),e);
+            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
         }finally {
             return result;
         }
@@ -54,7 +49,7 @@ public class ACSClient {
             apacheCloudStackRequest.addParameter("projectid", projectId);
             result = executeACScommand(apacheCloudStackRequest);
         }catch (Exception e){
-            logger.error(e.getMessage(),e);
+            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
         }finally {
             return result;
         }
@@ -67,7 +62,7 @@ public class ACSClient {
             apacheCloudStackRequest.addParameter("lbruleid", loadBalanceId);
             result = executeACScommand(apacheCloudStackRequest);
         }catch (Exception e){
-            logger.error(e.getMessage(),e);
+            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
         }finally {
             return result;
         }
@@ -75,7 +70,7 @@ public class ACSClient {
 
     protected JsonNode executeACScommand(ApacheCloudStackRequest apacheCloudStackRequest) throws Exception{
         String response = apacheCloudStackClient.executeRequest(apacheCloudStackRequest);
-        JsonNode jsonNode = JsonNodeUtil.desirializerJsonNode(response);
+        JsonNode jsonNode = JsonNodeUtil.deserializerJsonNode(response);
         return jsonNode;
     }
 

@@ -64,7 +64,7 @@ public class ACSCollectorService extends TimerTask {
     }
 
     private JsonNode getLoadBalances() {
-        ACSClient acsClient = new ACSClient(configuration);
+        ACSClient acsClient = new ACSClient(configuration, jsonLoggerService);
         JsonNode loadBalances = acsClient.getLoadBalancesByProject(configuration.getProjectId());
         getDetailsLoadBalance(acsClient, loadBalances);
         return loadBalances;
