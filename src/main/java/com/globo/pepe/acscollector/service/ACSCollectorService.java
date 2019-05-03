@@ -1,25 +1,24 @@
 package com.globo.pepe.acscollector.service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimerTask;
-
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
 import com.globo.pepe.acscollector.util.JsonNodeUtil;
 import com.globo.pepe.common.services.JsonLoggerService;
@@ -28,7 +27,6 @@ import com.globo.pepe.common.services.JsonLoggerService;
 public class ACSCollectorService extends TimerTask {
 
     private static final Logger logger = LogManager.getLogger(ACSClient.class);
-
 
     @Autowired
     private ACSCollectorConfiguration configuration;
@@ -73,60 +71,40 @@ public class ACSCollectorService extends TimerTask {
     }
 
     public void getDetailsLoadBalance(ACSClient acsClient, JsonNode loadBalances) {
-        if(loadBalances != null && loadBalances.get("listloadbalancerrulesresponse") != null
-            && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule") != null
-            &&loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").isArray()) {
-
-            logger.info("Iniciou da consulta");
-            ExecutorService threadPool = Executors.newFixedThreadPool(loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").size());
+        if (loadBalances != null && loadBalances.get("listloadbalancerrulesresponse") != null
+                && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule") != null
+                && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").isArray()) {
+            
+            logger.info("Inicio da consulta");
+            
+            Instant start = Instant.now();
+            
+            ExecutorService threadPool = Executors.newFixedThreadPool(
+                    loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").size());
             ExecutorCompletionService<JsonNode> completionService = new ExecutorCompletionService<>(threadPool);
 
-            List<ExemploCallable> tarefas = new ArrayList<ExemploCallable>();
+            List<ACSCallable> asyncronousTasks = new ArrayList<ACSCallable>();
 
-            for (JsonNode jsonNode : loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
-                tarefas.add(new ExemploCallable(30000,acsClient,jsonNode.get("id").asText()));
+            for (JsonNode jsonNodeVIP : loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+                asyncronousTasks.add(new ACSCallable(acsClient, jsonNodeVIP));
             }
 
-            try {
-                for (ExemploCallable tarefa : tarefas) {
-                    completionService.submit(tarefa);
-                }
-            }catch (Exception e){
-
+            for (ACSCallable tarefa : asyncronousTasks) {
+                completionService.submit(tarefa);
             }
 
-            for (int i = 0; i < tarefas.size(); i++) {
+            for (int i = 0; i < asyncronousTasks.size(); i++) {
                 try {
-                    JsonNode virtualMachines = completionService.take().get();
-                } catch (InterruptedException | ExecutionException ex) {
-                    ex.printStackTrace();
+                    completionService.take().get();
+                } catch (InterruptedException | ExecutionException e) {
+                    jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
                 }
             }
+            
+            Instant end = Instant.now();
+            Duration timeElapsed = Duration.between(start, end);
 
-
-       /*     for (JsonNode node : loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
-
-                String id = node.get("id").asText();
-           = acsClient.getLoadBalanceInstances(id);
-                setInstancesLoadBalance(node, virtualMachines);
-
-                JsonNode autoScaleGroup = acsClient.getAutoScaleByLB(id);
-                setAutoScaleGroupLoadBalance(node, autoScaleGroup);
-            }*/
-            logger.info("Fim da consulta");
-
-        }
-    }
-
-    public void  setInstancesLoadBalance(JsonNode loadBalance,JsonNode virtualMachines){
-        if(virtualMachines.get("listloadbalancerruleinstancesresponse") != null && virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance") != null){
-            ((ObjectNode) loadBalance).set("virtualMachines",virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"));
-        }
-    }
-
-    public void  setAutoScaleGroupLoadBalance(JsonNode loadBalance,JsonNode autoScaleGroup){
-        if(autoScaleGroup.get("listautoscalevmgroupsresponse") != null && autoScaleGroup.get("listautoscalevmgroupsresponse").get("autoscalevmgroup") != null){
-            ((ObjectNode) loadBalance).set("autoScaleGroup",autoScaleGroup.get("listautoscalevmgroupsresponse").get("autoscalevmgroup"));
+            logger.info("Fim da consulta: " + timeElapsed.toMillis());
         }
     }
 }

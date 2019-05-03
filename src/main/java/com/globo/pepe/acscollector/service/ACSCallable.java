@@ -1,25 +1,43 @@
 package com.globo.pepe.acscollector.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.concurrent.Callable;
 
-public class ExemploCallable implements Callable<JsonNode> {
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-    private final long tempoDeEspera;
+public class ACSCallable implements Callable<JsonNode> {
+
     private final ACSClient acsClient;
-    private final String id;
+    private final JsonNode loadBalance;
 
-    public ExemploCallable(int time,ACSClient acsClient,String id) {
-        this.tempoDeEspera = time;
+    public ACSCallable(ACSClient acsClient, JsonNode loadBalance) {
         this.acsClient = acsClient;
-        this.id = id;
-
+        this.loadBalance = loadBalance;
     }
 
     @Override
     public JsonNode call() throws Exception {
+        String id = this.loadBalance.get("id").asText();
+        
+        JsonNode virtualMachines = acsClient.getLoadBalanceInstances(id);
+        setInstancesLoadBalance(virtualMachines);
 
-        return acsClient.getLoadBalanceInstances(id);
+        JsonNode autoScaleGroup = acsClient.getAutoScaleByLB(id);
+        setAutoScaleGroupLoadBalance(autoScaleGroup);
+        
+        return this.loadBalance;
     }
 
+    private void setInstancesLoadBalance(JsonNode virtualMachines){
+        if(virtualMachines.get("listloadbalancerruleinstancesresponse") != null && virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance") != null){
+            ((ObjectNode) loadBalance).set("virtualMachines",virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"));
+        }
+    }
+    
+    private void setAutoScaleGroupLoadBalance(JsonNode autoScaleGroup){
+        if(autoScaleGroup.get("listautoscalevmgroupsresponse") != null && autoScaleGroup.get("listautoscalevmgroupsresponse").get("autoscalevmgroup") != null){
+            ((ObjectNode) loadBalance).set("autoScaleGroup",autoScaleGroup.get("listautoscalevmgroupsresponse").get("autoscalevmgroup"));
+        }
+    }
+    
 }
