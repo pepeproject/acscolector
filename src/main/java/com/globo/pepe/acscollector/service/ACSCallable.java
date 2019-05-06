@@ -28,13 +28,13 @@ public class ACSCallable implements Callable<JsonNode> {
         return this.loadBalance;
     }
 
-    private void setInstancesLoadBalance(JsonNode virtualMachines){
+    protected void setInstancesLoadBalance(JsonNode virtualMachines){
         if(virtualMachines.get("listloadbalancerruleinstancesresponse") != null && virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance") != null){
             ((ObjectNode) loadBalance).set("virtualMachines",virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"));
         }
     }
     
-    private void setAutoScaleGroupLoadBalance(JsonNode autoScaleGroup){
+    protected void setAutoScaleGroupLoadBalance(JsonNode autoScaleGroup){
         if(autoScaleGroup.get("listautoscalevmgroupsresponse") != null && autoScaleGroup.get("listautoscalevmgroupsresponse").get("autoscalevmgroup") != null){
             ((ObjectNode) loadBalance).set("autoScaleGroup",autoScaleGroup.get("listautoscalevmgroupsresponse").get("autoscalevmgroup"));
         }

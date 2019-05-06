@@ -20,6 +20,9 @@ public class ACSCallableTest extends ApplicationTests {
         String virtualMachinesString =  getDataServiceMock().getResult("listLoadBalancerRuleInstances");
         JsonNode virtualMachines = JsonNodeUtil.deserializerJsonNode(virtualMachinesString);
         
+        assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse"), Matchers.notNullValue());
+        assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"), Matchers.notNullValue());
+        
         String autoScaleString = getDataServiceMock().getResult("listAutoScaleVmGroups");
         JsonNode autoScale = JsonNodeUtil.deserializerJsonNode(autoScaleString);
 
@@ -31,14 +34,63 @@ public class ACSCallableTest extends ApplicationTests {
         for (JsonNode jsonNodeVIP : loadBalancer.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
             ACSCallable acsCallable = new ACSCallable(acsClient, jsonNodeVIP);
             acsCallable.call();
-        }
-        
-        for (JsonNode jsonNodeVIP : loadBalancer.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+            
             assertThat(jsonNodeVIP.get("virtualMachines"), Matchers.notNullValue());
         }
-        
-        assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse"), Matchers.notNullValue());
-        assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"), Matchers.notNullValue());
     }
 
+    
+    @Test
+    public void setInstancesLoadBalanceMachineNull() throws Exception{
+        String virtualMachinesString =  getDataServiceMock().getResultMachineNull("listLoadBalancerRuleInstances");
+        JsonNode virtualMachines = JsonNodeUtil.deserializerJsonNode(virtualMachinesString);
+
+        String loadBalanceString = getDataServiceMock().getResult("listLoadBalancerRules");
+        JsonNode loadBalancer = JsonNodeUtil.deserializerJsonNode(loadBalanceString);
+
+        for (JsonNode jsonNodeVIP : loadBalancer.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+            ACSCallable acsCallable = new ACSCallable(null, jsonNodeVIP);
+            acsCallable.setInstancesLoadBalance(virtualMachines);
+           
+            assertThat(jsonNodeVIP.get("virtualMachines"), Matchers.nullValue());
+            assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse"), Matchers.nullValue());
+        }
+    }
+
+    
+    @Test
+    public void setInstancesLoadBalanceMachineNullLayer() throws Exception{
+        String virtualMachinesString =  getDataServiceMock().getResultMachineNullTask("listLoadBalancerRuleInstances");
+        JsonNode virtualMachines = JsonNodeUtil.deserializerJsonNode(virtualMachinesString);
+
+        assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse"), Matchers.notNullValue());
+        assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"), Matchers.nullValue());
+
+        String loadBalanceString = getDataServiceMock().getResult("listLoadBalancerRules");
+        JsonNode loadBalancer = JsonNodeUtil.deserializerJsonNode(loadBalanceString);
+
+        for (JsonNode jsonNodeVIP : loadBalancer.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+            ACSCallable acsCallable = new ACSCallable(null, jsonNodeVIP);
+            acsCallable.setInstancesLoadBalance(virtualMachines);;
+            
+            assertThat(jsonNodeVIP.get("virtualMachines"), Matchers.nullValue());
+        }
+    }
+    
+    @Test
+    public void setAutoScaleGroupLoadBalance()throws Exception{
+
+        String autoScaleString = getDataServiceMock().getResult("listAutoScaleVmGroups");
+        JsonNode autoScale = JsonNodeUtil.deserializerJsonNode(autoScaleString);
+
+        String loadBalanceString = getDataServiceMock().getResult("listLoadBalancerRules");
+        JsonNode loadBalancer = JsonNodeUtil.deserializerJsonNode(loadBalanceString);
+        
+        for (JsonNode jsonNodeVIP : loadBalancer.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
+            ACSCallable acsCallable = new ACSCallable(null, jsonNodeVIP);
+            acsCallable.setAutoScaleGroupLoadBalance(autoScale);
+            
+            assertThat(jsonNodeVIP.get("autoScaleGroup"), Matchers.notNullValue());
+        }
+    }
 }
