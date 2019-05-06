@@ -18,24 +18,19 @@ public class ACSClientTest extends ApplicationTests {
 
     @Test
     public void getACSRequestFactory() {
-        ACSClient acsClient = new ACSClient(configuration, null);
+        ACSClient acsClient = new ACSClient(configuration);
         ApacheCloudStackRequest apacheCloudStackRequest = acsClient.getACSRequestFactory("test");
         assertThat(apacheCloudStackRequest, Matchers.notNullValue());
     }
 
     @Test(expected = RuntimeException.class)
     public void ACSClientException() {
-        ACSClient acsClient = new ACSClient(null, null);
+        ACSClient acsClient = new ACSClient(null);
     }
 
     @Test
     public void ACSClient() {
-        ACSClient acsClient = new ACSClient(configuration, null);
+        ACSClient acsClient = new ACSClient(configuration);
         assertThat(acsClient, Matchers.notNullValue());
     }
-
-
-
-
-
 }

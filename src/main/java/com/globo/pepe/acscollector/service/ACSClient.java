@@ -3,7 +3,6 @@ package com.globo.pepe.acscollector.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.globo.pepe.acscollector.util.ACSCollectorConfiguration;
 import com.globo.pepe.acscollector.util.JsonNodeUtil;
-import com.globo.pepe.common.services.JsonLoggerService;
 
 import br.com.autonomiccs.apacheCloudStack.client.ApacheCloudStackClient;
 import br.com.autonomiccs.apacheCloudStack.client.ApacheCloudStackRequest;
@@ -11,13 +10,10 @@ import br.com.autonomiccs.apacheCloudStack.client.beans.ApacheCloudStackUser;
 
 public class ACSClient {
 
-    private JsonLoggerService jsonLoggerService;
-
     private ApacheCloudStackUser apacheCloudStackUser;
     private ApacheCloudStackClient apacheCloudStackClient;
 
-    public ACSClient(ACSCollectorConfiguration configuration, JsonLoggerService jsonLoggerService) {
-        this.jsonLoggerService = jsonLoggerService;
+    public ACSClient(ACSCollectorConfiguration configuration) {
         this.apacheCloudStackUser = new ApacheCloudStackUser(configuration.getSecretKey(), configuration.getApiKey());
         this.apacheCloudStackClient = new ApacheCloudStackClient(configuration.getUrlACS(), apacheCloudStackUser);
     }
@@ -29,43 +25,22 @@ public class ACSClient {
         return apacheCloudStackRequest;
     }
 
-    public JsonNode getLoadBalanceInstances(String loadBalancerId){
-        JsonNode result = null;
-        try {
-            ApacheCloudStackRequest apacheCloudStackRequest = getACSRequestFactory("listLoadBalancerRuleInstances");
-            apacheCloudStackRequest.addParameter("id", loadBalancerId);
-            result = executeACScommand(apacheCloudStackRequest);
-        }catch (Exception e){
-            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
-        }finally {
-            return result;
-        }
+    public JsonNode getLoadBalanceInstances(String loadBalancerId) throws Exception{
+        ApacheCloudStackRequest apacheCloudStackRequest = getACSRequestFactory("listLoadBalancerRuleInstances");
+        apacheCloudStackRequest.addParameter("id", loadBalancerId);
+        return executeACScommand(apacheCloudStackRequest);
     }
 
-    public JsonNode getLoadBalancesByProject(String  projectId){
-        JsonNode result = null;
-        try {
-            ApacheCloudStackRequest apacheCloudStackRequest = getACSRequestFactory("listLoadBalancerRules");
-            apacheCloudStackRequest.addParameter("projectid", projectId);
-            result = executeACScommand(apacheCloudStackRequest);
-        }catch (Exception e){
-            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
-        }finally {
-            return result;
-        }
+    public JsonNode getLoadBalancesByProject(String  projectId) throws Exception{
+        ApacheCloudStackRequest apacheCloudStackRequest = getACSRequestFactory("listLoadBalancerRules");
+        apacheCloudStackRequest.addParameter("projectid", projectId);
+        return executeACScommand(apacheCloudStackRequest);
     }
 
-    public JsonNode getAutoScaleByLB(String loadBalanceId){
-        JsonNode result = null;
-        try {
-            ApacheCloudStackRequest apacheCloudStackRequest = getACSRequestFactory("listAutoScaleVmGroups");
-            apacheCloudStackRequest.addParameter("lbruleid", loadBalanceId);
-            result = executeACScommand(apacheCloudStackRequest);
-        }catch (Exception e){
-            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
-        }finally {
-            return result;
-        }
+    public JsonNode getAutoScaleByLB(String loadBalanceId) throws Exception{
+        ApacheCloudStackRequest apacheCloudStackRequest = getACSRequestFactory("listAutoScaleVmGroups");
+        apacheCloudStackRequest.addParameter("lbruleid", loadBalanceId);
+        return executeACScommand(apacheCloudStackRequest);
     }
 
     protected JsonNode executeACScommand(ApacheCloudStackRequest apacheCloudStackRequest) throws Exception{

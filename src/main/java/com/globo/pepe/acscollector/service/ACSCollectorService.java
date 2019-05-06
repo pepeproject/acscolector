@@ -1,6 +1,5 @@
 package com.globo.pepe.acscollector.service;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -61,7 +60,7 @@ public class ACSCollectorService extends TimerTask {
 
             Instant end = Instant.now();
             
-            logger.info("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
+            logger.debug("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
 
         } catch (Exception e) {
             jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + loadBalances)
@@ -73,8 +72,8 @@ public class ACSCollectorService extends TimerTask {
         return Calendar.getInstance().getTimeInMillis() * 1000L * 1000L;
     }
 
-    private JsonNode getLoadBalances() {
-        ACSClient acsClient = new ACSClient(configuration, jsonLoggerService);
+    private JsonNode getLoadBalances() throws Exception {
+        ACSClient acsClient = new ACSClient(configuration);
         JsonNode loadBalances = acsClient.getLoadBalancesByProject(configuration.getProjectId());
         getDetailsLoadBalance(acsClient, loadBalances);
         return loadBalances;
@@ -84,10 +83,6 @@ public class ACSCollectorService extends TimerTask {
         if (loadBalances != null && loadBalances.get("listloadbalancerrulesresponse") != null
                 && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule") != null
                 && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").isArray()) {
-            
-            logger.info("Inicio da consulta");
-            
-            Instant start = Instant.now();
             
             ExecutorService threadPool = Executors.newFixedThreadPool(
                     loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").size());
@@ -110,11 +105,6 @@ public class ACSCollectorService extends TimerTask {
                     jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
                 }
             }
-            
-            Instant end = Instant.now();
-            Duration timeElapsed = Duration.between(start, end);
-
-            logger.info("Fim da consulta: " + timeElapsed.toMillis());
         }
     }
 }
