@@ -1,0 +1,23 @@
+build:
+  project: '@project.artifactId@'
+  timestamp: '@timestamp@'
+  version: '@project.version@'
+
+acs_collector:
+  fixedDelay: ${SCHEDULER_TIME:30000}
+
+telegraf:
+  url: http://127.0.0.1:5000/write
+
+acs:
+  url: http://127.0.0.1/client/api
+  api_key: xxx
+  secret_key: xxx
+  project_id: xxx
+
+server:
+  port: 8000
+
+pepe:
+  logging:
+    tags: default
