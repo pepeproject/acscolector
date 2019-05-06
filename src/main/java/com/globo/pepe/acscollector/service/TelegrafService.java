@@ -1,11 +1,11 @@
 package com.globo.pepe.acscollector.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,6 +15,8 @@ import com.globo.pepe.common.services.JsonLoggerService;
 @Service
 public class TelegrafService {
 
+    private static final Logger logger = LogManager.getLogger(TelegrafService.class);
+    
     @Autowired
     private ACSCollectorConfiguration configuration;
 
@@ -33,16 +35,21 @@ public class TelegrafService {
         String metricWithTimestamp = stringBuffer.toString();
 
         HttpEntity<String> entity = new HttpEntity<>(metricWithTimestamp);
-        ResponseEntity<String> response = restTemplate.exchange(configuration.getUrlTelegraf(), HttpMethod.POST, entity, String.class);
-
-        if (!HttpStatus.NO_CONTENT.equals(response.getStatusCode())) {
-            jsonLoggerService.newLogger(getClass()).put("short_message", "Response status code: " + response.getStatusCodeValue() + " ao enviar métricas: (" + metricWithTimestamp+ ")").sendError();
+        
+        try {
+            restTemplate.exchange(configuration.getUrlTelegraf(), HttpMethod.POST, entity, String.class);
+        }
+        catch (Exception e) {
+            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + "ao enviar métricas: (" + metricWithTimestamp+ ")").sendError();
+            logger.debug(e.getMessage() + ": " + "ao enviar métricas: (" + metricWithTimestamp+ ")");
         }
     }
 
     @Bean
     public RestTemplate getRestTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setErrorHandler(new RestTemplateResponseErrorHandler());
+        return restTemplate;
     }
 
 }
