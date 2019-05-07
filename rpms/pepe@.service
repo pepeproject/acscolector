@@ -21,6 +21,8 @@ ExecStart=/bin/bash -l -c "\
   -Dcom.sun.management.jmxremote.ssl=false \
   -Dcom.sun.management.jmxremote=true \
   -Dlogging.config=/opt/pepe/%i/conf/log4j.xml \
+  -Djavax.net.ssl.keyStore=/etc/pki/java/cacerts \
+  -Djavax.net.ssl.trustStore=/etc/pki/java/cacerts \
   -DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector \
   ${JAVA_VMS} \
   ${JAVA_VMX} \

@@ -45,12 +45,15 @@ public class ACSCollectorService extends TimerTask {
     public void run() {
         JsonNode loadBalances = null;
         try {
+
             Instant start = Instant.now();
-            
+
             Long timestamp = getTimestampToTelegraf();
+
             loadBalances = getLoadBalances();
 
             Map<String, Map<String, String>> loadBalancerFormated = JsonNodeUtil.formmaterPostTelegraf(loadBalances);
+
 
             for (Entry<String, Map<String, String>> vip : loadBalancerFormated.entrySet()) {
                 for (Entry<String, String> vm : vip.getValue().entrySet()) {
@@ -60,9 +63,10 @@ public class ACSCollectorService extends TimerTask {
 
             Instant end = Instant.now();
             
-            logger.debug("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
+            logger.info("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
 
         } catch (Exception e) {
+            logger.info("Exception: " + e.getMessage());
             jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + loadBalances)
                     .sendError();
         }

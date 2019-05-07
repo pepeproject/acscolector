@@ -41,7 +41,6 @@ public class TelegrafService {
         }
         catch (Exception e) {
             jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + "ao enviar métricas: (" + metricWithTimestamp+ ")").sendError();
-            logger.debug(e.getMessage() + ": " + "ao enviar métricas: (" + metricWithTimestamp+ ")");
         }
     }
 
