@@ -82,11 +82,7 @@ public class TelegrafServiceTest extends ApplicationTests {
         
         mockServer.verify(HttpRequest.request().withPath("/write").withBody(addTimeStamp(POST_DATA_INVALID_WITHOUT_TIMESTAMP)));
     }
-    
-    @Test
-    public void getRestTemplate() {
-        RestTemplate restTemplate = telegrafService.getRestTemplate();
-        assertThat(restTemplate, Matchers.notNullValue());
-    }
+
+
 
 }
