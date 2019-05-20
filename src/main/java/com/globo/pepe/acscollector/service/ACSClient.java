@@ -5,11 +5,14 @@ import br.com.autonomiccs.apacheCloudStack.client.ApacheCloudStackRequest;
 import br.com.autonomiccs.apacheCloudStack.client.beans.ApacheCloudStackUser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class ACSClient {
@@ -65,6 +68,10 @@ public class ACSClient {
     protected JsonNode executeACScommand(ApacheCloudStackRequest apacheCloudStackRequest) throws Exception {
         String response = apacheCloudStackClient.executeRequest(apacheCloudStackRequest);
         return  mapper.readTree(response);
+    }
+
+    public String uriBuilder(final URI uri, final MultiValueMap<String, String> params) {
+        return UriComponentsBuilder.fromUri(uri).queryParams(params).build().toUriString();
     }
 
 }
