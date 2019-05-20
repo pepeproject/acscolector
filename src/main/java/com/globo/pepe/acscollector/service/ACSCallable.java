@@ -1,30 +1,29 @@
 package com.globo.pepe.acscollector.service;
 
-import java.util.concurrent.Callable;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.concurrent.Callable;
 
 public class ACSCallable implements Callable<JsonNode> {
 
-    private final ACSClient acsClient;
+    private ACSClientService acsClientService;
     private final JsonNode loadBalance;
 
-    public ACSCallable(ACSClient acsClient, JsonNode loadBalance) {
-        this.acsClient = acsClient;
+    public ACSCallable(ACSClientService acsClientService, JsonNode loadBalance) {
+        this.acsClientService = acsClientService;
         this.loadBalance = loadBalance;
     }
 
     @Override
     public JsonNode call() throws Exception {
         String id = this.loadBalance.get("id").asText();
-        
-        JsonNode virtualMachines = acsClient.getLoadBalanceInstances(id);
+
+        JsonNode virtualMachines = acsClientService.getLoadBalanceInstances(id);
         setInstancesLoadBalance(virtualMachines);
 
-        JsonNode autoScaleGroup = acsClient.getAutoScaleByLB(id);
+        JsonNode autoScaleGroup = acsClientService.getAutoScaleByLB(id);
         setAutoScaleGroupLoadBalance(autoScaleGroup);
-        
+
         return this.loadBalance;
     }
 

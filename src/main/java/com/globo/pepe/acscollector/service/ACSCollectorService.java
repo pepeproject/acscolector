@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -26,13 +25,16 @@ public class ACSCollectorService extends TimerTask {
     private static final Logger logger = LogManager.getLogger(ACSCollectorService.class);
 
     private final TelegrafService telegrafService;
-    private final ACSClient acsClient;
+    private final ACSClientService acsClientService;
     private final JsonLoggerService jsonLoggerService;
+    private final JsonNodeUtil jsonNodeUtil;
 
-    public ACSCollectorService(JsonLoggerService jsonLoggerService, ACSClient acsClient, TelegrafService telegrafService) {
+
+    public ACSCollectorService(JsonLoggerService jsonLoggerService, ACSClientService acsClientService, TelegrafService telegrafService, JsonNodeUtil jsonNodeUtil) {
         this.jsonLoggerService = jsonLoggerService;
-        this.acsClient = acsClient;
+        this.acsClientService = acsClientService;
         this.telegrafService = telegrafService;
+        this.jsonNodeUtil = jsonNodeUtil;
     }
 
 
@@ -46,7 +48,7 @@ public class ACSCollectorService extends TimerTask {
 
             JsonNode loadBalances = getLoadBalances();
 
-            Map<String, Map<String, String>> loadBalancerFormated = JsonNodeUtil.formmaterPostTelegraf(loadBalances);
+            Map<String, Map<String, String>> loadBalancerFormated = jsonNodeUtil.formmaterPostTelegraf(loadBalances);
 
             for (Entry<String, Map<String, String>> vip : loadBalancerFormated.entrySet()) {
                 for (Entry<String, String> vm : vip.getValue().entrySet()) {
@@ -58,7 +60,7 @@ public class ACSCollectorService extends TimerTask {
 
             logger.info("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
         } catch (Exception e) {
-             jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
+            jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
         }
     }
 
@@ -68,12 +70,12 @@ public class ACSCollectorService extends TimerTask {
 
 
     private JsonNode getLoadBalances() throws Exception {
-        JsonNode loadBalances = acsClient.getLoadBalancesByProject();
-        getDetailsLoadBalance(acsClient, loadBalances);
+        JsonNode loadBalances = acsClientService.getLoadBalancesByProject();
+        getDetailsLoadBalance(acsClientService, loadBalances);
         return loadBalances;
     }
 
-    public void getDetailsLoadBalance(ACSClient acsClient, JsonNode loadBalances) {
+    public void getDetailsLoadBalance(ACSClientService acsClientService, JsonNode loadBalances) {
         if (loadBalances != null && loadBalances.get("listloadbalancerrulesresponse") != null
             && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule") != null
             && loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").isArray()) {
@@ -82,10 +84,10 @@ public class ACSCollectorService extends TimerTask {
                 loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").size());
             ExecutorCompletionService<JsonNode> completionService = new ExecutorCompletionService<>(threadPool);
 
-            List<ACSCallable> asyncronousTasks = new ArrayList<ACSCallable>();
+            List<ACSCallable> asyncronousTasks = new ArrayList<>();
 
             for (JsonNode jsonNodeVIP : loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
-                asyncronousTasks.add(new ACSCallable(acsClient, jsonNodeVIP));
+                asyncronousTasks.add(new ACSCallable(acsClientService, jsonNodeVIP));
             }
 
             for (ACSCallable tarefa : asyncronousTasks) {

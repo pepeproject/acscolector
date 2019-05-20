@@ -3,17 +3,20 @@ package com.globo.pepe.acscollector.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class JsonNodeUtil {
 
-    public static  Map<String, Map<String,String>> formmaterPostTelegraf(JsonNode loadbalances) {
+    public   Map<String, Map<String,String>> formmaterPostTelegraf(JsonNode loadbalances) {
             Map<String, Map<String, String>> loadbalancesToTelegrafMetric = new LinkedHashMap<String, Map<String, String>>();
             Map<String, String> virtualMachines = new LinkedHashMap<String, String>();
             if (loadbalances != null && loadbalances.get("listloadbalancerrulesresponse") != null) {
                 for (JsonNode loadBalance : loadbalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
                     if(loadBalance.get("virtualMachines") != null){
+                        virtualMachines = new LinkedHashMap<String, String>();
                         for (JsonNode virtualMachine : loadBalance.get("virtualMachines")) {
-                            virtualMachines = buildVirtualMachineIdToTelegrafMetric(loadBalance, virtualMachine);
+                            virtualMachines.put(virtualMachine.get("id").asText(),buildVirtualMachineIdToTelegrafMetric(loadBalance, virtualMachine));
                         }
                     }
                     loadbalancesToTelegrafMetric.put(loadBalance.get("name").asText(), virtualMachines);
@@ -22,10 +25,8 @@ public class JsonNodeUtil {
             return loadbalancesToTelegrafMetric;
     }
 
-    private static Map<String, String> buildVirtualMachineIdToTelegrafMetric(JsonNode loadBalance, JsonNode virtualMachine) {
-        Map<String, String> virtualMachines;
+    private  String buildVirtualMachineIdToTelegrafMetric(JsonNode loadBalance, JsonNode virtualMachine) {
         StringBuilder metricTelegraf = new StringBuilder("pepe_acs_metrics");
-        virtualMachines = new LinkedHashMap<String, String>();
 
         if(loadBalance.get("id") != null){
             metricTelegraf.append(",vip_id=").append(loadBalance.get("id").asText());
@@ -67,19 +68,23 @@ public class JsonNodeUtil {
         
         if(loadBalance.get("autoScaleGroup") != null && loadBalance.get("autoScaleGroup").isArray() && loadBalance.get("autoScaleGroup").get(0).get("minmembers") != null){
             metricTelegraf.append("autoscale_minmembers=").append(loadBalance.get("autoScaleGroup").get(0).get("minmembers").asText());
-
+        }else{
+            metricTelegraf.append("autoscale_minmembers=").append("0");
         }
 
         if(loadBalance.get("autoScaleGroup") != null && loadBalance.get("autoScaleGroup").isArray() && loadBalance.get("autoScaleGroup").get(0).get("maxmembers") != null){
             metricTelegraf.append(",autoscale_maxmembers=").append(loadBalance.get("autoScaleGroup").get(0).get("maxmembers").asText());
 
+        }else{
+            metricTelegraf.append(",autoscale_maxmembers=").append("0");
         }
 
         if(loadBalance.get("autoScaleGroup") != null && loadBalance.get("autoScaleGroup").isArray() && loadBalance.get("autoScaleGroup").get(0).get("autoscalegroupcountmembers") != null){
             metricTelegraf.append(",autoscale_count=").append(loadBalance.get("autoScaleGroup").get(0).get("autoscalegroupcountmembers").asText());
+        }else{
+            metricTelegraf.append(",autoscale_count=").append("0");
         }
 
-        virtualMachines.put(virtualMachine.get("id").asText(), metricTelegraf.toString());
-        return virtualMachines;
+        return metricTelegraf.toString();
     }
 }

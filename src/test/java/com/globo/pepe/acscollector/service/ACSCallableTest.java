@@ -1,16 +1,9 @@
 package com.globo.pepe.acscollector.service;
 
-import static org.junit.Assert.assertThat;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.Matchers;
+import com.globo.pepe.acscollector.ApplicationTests;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.globo.pepe.acscollector.ApplicationTests;
-import com.globo.pepe.acscollector.util.JsonNodeUtil;
 
 public class ACSCallableTest extends ApplicationTests {
 
