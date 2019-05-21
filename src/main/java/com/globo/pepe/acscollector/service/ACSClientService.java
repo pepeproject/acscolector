@@ -4,7 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +36,12 @@ public class ACSClientService {
     @Value("${acs.api_key}")
     private String apiKey;
 
+    @Value("${acs.request_validity}")
+    private int requestValidity = 30;
+
+    private final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
+
+
     private final RestTemplate restTemplate;
     private final HmacUtils hmacUtils;
 
@@ -55,13 +65,12 @@ public class ACSClientService {
         return executeACScommand(params, "listAutoScaleVmGroups");
     }
 
-    protected JsonNode executeACScommand(Map<String,String> params, String consulta) throws Exception {
+    protected JsonNode executeACScommand(Map<String,String> params, String consulta) {
         MultiValueMap<String, String> paramsMulti = new LinkedMultiValueMap<>();
         paramsMulti.setAll(params);
         String url = uriBuilder(URI.create(urlACS), paramsMulti);
         JsonNode response = null;
         response = restTemplate.getForObject(url, JsonNode.class);
-        System.out.println("URL "+url+" response "+response + " consulta "+consulta);
 
         return response;
     }
@@ -90,8 +99,7 @@ public class ACSClientService {
         params.put("apiKey", apiKey);
         params.put("command",command);
 
-
-        params.put("expires", "2019-05-21T11:59:13-0300");
+        params.put("expires", createExpirationDate());
         params.put("listAll", "true");
 
 
@@ -116,7 +124,15 @@ public class ACSClientService {
         return params;
     }
 
+    protected Date getExpirationDate() {
+        Calendar now = Calendar.getInstance();
+        now.add(Calendar.SECOND, requestValidity);
+        return now.getTime();
+    }
 
-
+    protected String createExpirationDate() {
+        DateFormat acsIso8601DateFormat = new SimpleDateFormat(DATE_PATTERN);
+        return acsIso8601DateFormat.format(getExpirationDate());
+    }
 
 }

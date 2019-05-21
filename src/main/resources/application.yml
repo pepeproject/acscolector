@@ -14,6 +14,7 @@ acs:
   api_key: ${ACS_API_KEY:xxx}
   secret_key: ${ACS_SECRET_KEY:xxx}
   project_id: ${ACS_PROJECT_ID:xxx}
+  request_validity: ${REQUEST_VALIDITY:30}
 
 server:
   port: ${SERVER_PORT:8000}

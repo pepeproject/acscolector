@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,22 +29,26 @@ public class ACSCollectorService extends TimerTask {
     private final ACSClientService acsClientService;
     private final JsonLoggerService jsonLoggerService;
     private final JsonNodeUtil jsonNodeUtil;
+    private final String projectId;
 
 
-    public ACSCollectorService(JsonLoggerService jsonLoggerService, ACSClientService acsClientService, TelegrafService telegrafService, JsonNodeUtil jsonNodeUtil) {
+    public ACSCollectorService(JsonLoggerService jsonLoggerService, ACSClientService acsClientService,
+        TelegrafService telegrafService, JsonNodeUtil jsonNodeUtil, @Value("${acs.project_id}") String projectId) {
         this.jsonLoggerService = jsonLoggerService;
         this.acsClientService = acsClientService;
         this.telegrafService = telegrafService;
         this.jsonNodeUtil = jsonNodeUtil;
+        this.projectId = projectId;
     }
-
 
     @Override
     @Scheduled(fixedDelayString = "${acs_collector.fixedDelay}")
     public void run() {
         try {
             Instant start = Instant.now();
-
+            jsonLoggerService.newLogger(getClass()).put("short_message",
+                "Iníciada a coleta de métricas do Cloudstack para o projeto de ID: " + projectId + " " + start + " ms")
+                .sendInfo();
             Long timestamp = getTimestampToTelegraf();
 
             JsonNode loadBalances = getLoadBalances();
@@ -51,14 +56,21 @@ public class ACSCollectorService extends TimerTask {
             Map<String, Map<String, String>> loadBalancerFormated = jsonNodeUtil.formmaterPostTelegraf(loadBalances);
 
             for (Entry<String, Map<String, String>> vip : loadBalancerFormated.entrySet()) {
-                    for (Entry<String, String> vm : vip.getValue().entrySet()) {
-                        telegrafService.post(vm.getValue(), timestamp);
+                for (Entry<String, String> vm : vip.getValue().entrySet()) {
+
+                    telegrafService.post(vm.getValue(), timestamp);
+
+                    if (logger.isDebugEnabled()) {
+                        jsonLoggerService.newLogger(getClass()).put("short_message", "Métrica: " + vm.getValue())
+                            .sendDebug();
                     }
+                }
             }
 
             Instant end = Instant.now();
-
-            logger.info("Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms");
+            jsonLoggerService.newLogger(getClass()).put("short_message",
+                "Finalizada a coleta de métricas do Cloudstack para o projeto de ID: " + projectId
+                    + " Métricas enviadas em: " + (end.toEpochMilli() - start.toEpochMilli()) + "ms").sendInfo();
         } catch (Exception e) {
             jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage()).sendError();
         }
@@ -87,7 +99,7 @@ public class ACSCollectorService extends TimerTask {
             List<ACSCallable> asyncronousTasks = new ArrayList<>();
 
             for (JsonNode jsonNodeVIP : loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
-                if(jsonNodeVIP.size() != 0){
+                if (jsonNodeVIP.size() != 0) {
                     asyncronousTasks.add(new ACSCallable(acsClientService, jsonNodeVIP));
                 }
 

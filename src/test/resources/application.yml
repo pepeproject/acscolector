@@ -14,6 +14,7 @@ acs:
   api_key: xxx
   secret_key: xxx
   project_id: xxx
+  request_validity: 30000
 
 server:
   port: 8000

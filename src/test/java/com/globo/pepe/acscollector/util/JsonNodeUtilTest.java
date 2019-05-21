@@ -1,30 +1,33 @@
-/*
 package com.globo.pepe.acscollector.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.globo.pepe.acscollector.ApplicationTests;
 import com.globo.pepe.acscollector.service.ACSCallable;
-import com.globo.pepe.acscollector.service.ACSClient;
-
+import com.globo.pepe.acscollector.service.ACSClientService;
+import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class JsonNodeUtilTest extends ApplicationTests {
 
     private ObjectMapper mapper;
+
+    @Autowired
+    private  JsonNodeUtil jsonNodeUtil;
 
     @Before
     public void setup(){
         this.mapper = new ObjectMapper();
 
     }
+
 
     @Test
     public void getLoadBalancesByProject() throws Exception {
@@ -61,7 +64,7 @@ public class JsonNodeUtilTest extends ApplicationTests {
         String autoScaleString = getDataServiceMock().getResult("listAutoScaleVmGroups");
         JsonNode autoScale = mapper.readTree(autoScaleString);
 
-        ACSClient acsClient = Mockito.mock(ACSClient.class);
+        ACSClientService acsClient = Mockito.mock(ACSClientService.class);
         
         Mockito.when(acsClient.getLoadBalanceInstances(Mockito.anyString())).thenReturn(virtualMachines);
         Mockito.when(acsClient.getAutoScaleByLB(Mockito.anyString())).thenReturn(autoScale);
@@ -78,7 +81,7 @@ public class JsonNodeUtilTest extends ApplicationTests {
         assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse"), Matchers.notNullValue());
         assertThat(virtualMachines.get("listloadbalancerruleinstancesresponse").get("loadbalancerruleinstance"), Matchers.notNullValue());
         
-        Map<String, Map<String,String>> mapVIPPost = JsonNodeUtil.formmaterPostTelegraf(loadBalancer);
+        Map<String, Map<String,String>> mapVIPPost = jsonNodeUtil.formmaterPostTelegraf(loadBalancer);
 
         assertThat(mapVIPPost.get("domain.com"), Matchers.notNullValue());
         assertThat(mapVIPPost.get("domain.com").get("00000000-0000-0000-0000-00000000000"), Matchers.notNullValue());
@@ -100,4 +103,4 @@ public class JsonNodeUtilTest extends ApplicationTests {
     }
 
 }
-*/
+

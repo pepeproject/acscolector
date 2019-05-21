@@ -1,22 +1,22 @@
-/*
+
 package com.globo.pepe.acscollector.service;
 
 import static org.junit.Assert.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.globo.pepe.acscollector.ApplicationTests;
+import com.globo.pepe.common.services.JsonLoggerService;
+import com.globo.pepe.common.services.JsonLoggerService.JsonLogger;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.globo.pepe.acscollector.ApplicationTests;
-import com.globo.pepe.acscollector.util.JsonNodeUtil;
-import com.globo.pepe.common.services.JsonLoggerService;
-import com.globo.pepe.common.services.JsonLoggerService.JsonLogger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ACSCollectorServiceTest extends ApplicationTests {
-    
+
+    @Autowired
     private ACSCollectorService acsCollectorService;
 
 
@@ -37,8 +37,6 @@ public class ACSCollectorServiceTest extends ApplicationTests {
         Mockito.when(jsonLogger.sendError()).thenReturn("");
         
         Mockito.when(jsonLoggerService.newLogger(Mockito.any())).thenReturn(jsonLogger);
-        
-       // this.acsCollectorService = new ACSCollectorService(jsonLoggerService);
     }
     
     @Test
@@ -52,7 +50,7 @@ public class ACSCollectorServiceTest extends ApplicationTests {
         String autoScaleString = getDataServiceMock().getResult("listAutoScaleVmGroups");
         JsonNode autoScale = mapper.readTree(autoScaleString);
 
-        ACSClient acsClient = Mockito.mock(ACSClient.class);
+        ACSClientService acsClient = Mockito.mock(ACSClientService.class);
         Mockito.when(acsClient.getLoadBalanceInstances(Mockito.anyString())).thenReturn(virtualMachines);
         Mockito.when(acsClient.getAutoScaleByLB(Mockito.anyString())).thenReturn(autoScale);
 
@@ -64,4 +62,4 @@ public class ACSCollectorServiceTest extends ApplicationTests {
         }
     }
 }
-*/
+

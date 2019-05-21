@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 
 public class ACSCallable implements Callable<JsonNode> {
 
-    private ACSClientService acsClientService;
+    private final ACSClientService acsClientService;
     private final JsonNode loadBalance;
 
     public ACSCallable(ACSClientService acsClientService, JsonNode loadBalance) {
