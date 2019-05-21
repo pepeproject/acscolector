@@ -51,9 +51,9 @@ public class ACSCollectorService extends TimerTask {
             Map<String, Map<String, String>> loadBalancerFormated = jsonNodeUtil.formmaterPostTelegraf(loadBalances);
 
             for (Entry<String, Map<String, String>> vip : loadBalancerFormated.entrySet()) {
-                for (Entry<String, String> vm : vip.getValue().entrySet()) {
+                    for (Entry<String, String> vm : vip.getValue().entrySet()) {
                         telegrafService.post(vm.getValue(), timestamp);
-                }
+                    }
             }
 
             Instant end = Instant.now();
@@ -87,7 +87,10 @@ public class ACSCollectorService extends TimerTask {
             List<ACSCallable> asyncronousTasks = new ArrayList<>();
 
             for (JsonNode jsonNodeVIP : loadBalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
-                asyncronousTasks.add(new ACSCallable(acsClientService, jsonNodeVIP));
+                if(jsonNodeVIP.size() != 0){
+                    asyncronousTasks.add(new ACSCallable(acsClientService, jsonNodeVIP));
+                }
+
             }
 
             for (ACSCallable tarefa : asyncronousTasks) {

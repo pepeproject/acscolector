@@ -17,13 +17,13 @@ public class TelegrafService {
     
     private final JsonLoggerService jsonLoggerService;
 
-    public TelegrafService(JsonLoggerService jsonLoggerService) {
-        this.restTemplate = new RestTemplate();
+    public TelegrafService(JsonLoggerService jsonLoggerService, RestTemplate restTemplate) {
         this.jsonLoggerService = jsonLoggerService;
+        this.restTemplate = restTemplate;
     }
 
     public void post(String metric, Long timestamp) {
-        StringBuffer stringBuffer = new StringBuffer(metric);
+        StringBuilder stringBuffer = new StringBuilder(metric);
         stringBuffer.append(" ").append(timestamp);
         String metricWithTimestamp = stringBuffer.toString();
 
@@ -35,5 +35,4 @@ public class TelegrafService {
             jsonLoggerService.newLogger(getClass()).put("short_message", e.getMessage() + ": " + "ao enviar métricas: (" + metricWithTimestamp+ ")").sendError();
         }
     }
-
 }

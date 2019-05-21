@@ -1,80 +1,69 @@
 package com.globo.pepe.acscollector.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import javafx.collections.transformation.SortedList;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class ACSClientService {
 
+    @Value("${acs.project_id}")
+    private String projectId;
 
-    private @Value("${acs.project_id}") String projectId;
-    private @Value("${acs.url}") String urlACS;
-    private @Value("${acs.api_key}") String apiKey;
-    private @Value("${acs.secret_key}") String secretKey;
+    @Value("${acs.url}")
+    private String urlACS;
 
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
+    @Value("${acs.api_key}")
+    private String apiKey;
 
-    private  RestTemplate restTemplate;
-    private ObjectMapper mapper;
+    private final RestTemplate restTemplate;
+    private final HmacUtils hmacUtils;
 
-    public ACSClientService() {
-        this.mapper = new ObjectMapper();
+    public ACSClientService(RestTemplate restTemplate, @Value("${acs.secret_key}") String secretKey) {
+        this.restTemplate = restTemplate;
+        this.hmacUtils = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, secretKey);
     }
-
 
     public JsonNode getLoadBalanceInstances(String loadBalancerId) throws Exception {
         Map<String,String> params = makeParamsLoadBalance("listLoadBalancerRuleInstances",loadBalancerId);
-        return executeACScommand(params);
+        return executeACScommand(params, "listLoadBalancerRuleInstances");
     }
 
     public JsonNode getLoadBalancesByProject() throws Exception {
         Map<String,String> params = makeParamsLoadBalance("listLoadBalancerRules",null);
-        return executeACScommand(params);
+        return executeACScommand(params, "listLoadBalancerRules");
     }
 
     public JsonNode getAutoScaleByLB(String loadBalanceId) throws Exception {
         Map<String,String> params = makeParamsLoadBalance("listAutoScaleVmGroups",loadBalanceId);
-        return executeACScommand(params);
+        return executeACScommand(params, "listAutoScaleVmGroups");
     }
 
-    protected JsonNode executeACScommand(Map<String,String> params) throws Exception {
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory();
-        factory.setEncodingMode(EncodingMode.VALUES_ONLY);
-        restTemplateBuilder = restTemplateBuilder.uriTemplateHandler(factory);
-        this.restTemplate = restTemplateBuilder.build();
-
-        MultiValueMap<String,String> paramsMulti =  new LinkedMultiValueMap<>();
+    protected JsonNode executeACScommand(Map<String,String> params, String consulta) throws Exception {
+        MultiValueMap<String, String> paramsMulti = new LinkedMultiValueMap<>();
         paramsMulti.setAll(params);
-        String url = uriBuilder(URI.create(urlACS),paramsMulti);
-        System.out.println(url);
-        String response = restTemplate.getForObject(url,String.class);
-        return  mapper.readTree(response);
+        String url = uriBuilder(URI.create(urlACS), paramsMulti);
+        JsonNode response = null;
+        response = restTemplate.getForObject(url, JsonNode.class);
+        System.out.println("URL "+url+" response "+response + " consulta "+consulta);
+
+        return response;
     }
 
     public String uriBuilder(final URI uri, final MultiValueMap<String, String> params) {
@@ -90,11 +79,9 @@ public class ACSClientService {
 
         Collections.sort(listParams);
         String queryString = String.join("&", listParams);
-        byte[] signatureBytes = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, secretKey)
-            .hmac(queryString.toLowerCase());
-        String signature = URLEncoder.encode(Base64.encodeBase64String(signatureBytes), "UTF-8");
+        byte[] signatureBytes = hmacUtils.hmac(queryString.toLowerCase());
 
-        return signature;
+        return URLEncoder.encode(Base64.encodeBase64String(signatureBytes), "UTF-8");
     }
 
     public Map<String, String> makeParamsLoadBalance(String command,String loadBalancerId) throws UnsupportedEncodingException {
@@ -112,6 +99,7 @@ public class ACSClientService {
             params.put("lbruleid",loadBalancerId);
             params.put("projectid", projectId);
         }
+
         if(command.equalsIgnoreCase("listLoadBalancerRuleInstances") && loadBalancerId != null){
             params.put("id",loadBalancerId);
             params.put("projectid", projectId);

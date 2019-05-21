@@ -8,18 +8,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class JsonNodeUtil {
 
-    public   Map<String, Map<String,String>> formmaterPostTelegraf(JsonNode loadbalances) {
-            Map<String, Map<String, String>> loadbalancesToTelegrafMetric = new LinkedHashMap<String, Map<String, String>>();
+
+    public Map<String, Map<String,String>> formmaterPostTelegraf(JsonNode loadbalances) {
+            Map<String, Map<String, String>> loadbalancesToTelegrafMetric = new LinkedHashMap<>();
             Map<String, String> virtualMachines = new LinkedHashMap<String, String>();
-            if (loadbalances != null && loadbalances.get("listloadbalancerrulesresponse") != null) {
+            if (loadbalances != null && loadbalances.get("listloadbalancerrulesresponse") != null && loadbalances.get("listloadbalancerrulesresponse").get("loadbalancerrule").size() > 0) {
                 for (JsonNode loadBalance : loadbalances.get("listloadbalancerrulesresponse").get("loadbalancerrule")) {
-                    if(loadBalance.get("virtualMachines") != null){
-                        virtualMachines = new LinkedHashMap<String, String>();
+
+                    virtualMachines = new LinkedHashMap<>();
+                    if(loadBalance.get("virtualMachines") != null && loadBalance.get("virtualMachines").size() > 0){
                         for (JsonNode virtualMachine : loadBalance.get("virtualMachines")) {
                             virtualMachines.put(virtualMachine.get("id").asText(),buildVirtualMachineIdToTelegrafMetric(loadBalance, virtualMachine));
                         }
                     }
-                    loadbalancesToTelegrafMetric.put(loadBalance.get("name").asText(), virtualMachines);
+                    if(!virtualMachines.isEmpty()){
+                        loadbalancesToTelegrafMetric.put(loadBalance.get("name").asText(), virtualMachines);
+                    }
+
                 }
             }
             return loadbalancesToTelegrafMetric;
