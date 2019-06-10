@@ -22,3 +22,7 @@ server:
 pepe:
   logging:
     tags: ${LOGGING_TAGS:default}
+
+spring:
+  pid:
+    file: ${PID_FILE:/tmp/pepe-chapolin.pid}
